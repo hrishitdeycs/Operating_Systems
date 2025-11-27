@@ -1,42 +1,53 @@
-class Process :
-    def __init__(self,process_id,burst_time):
-        self.process_id = process_id
-        self.burst_time = burst_time
-        self.waiting_time = 0 
-        self.turn_around_time = 0 
+processes = [
+    {"pid": 1, "arrival": 0, "burst": 6},
+    {"pid": 2, "arrival": 1, "burst": 8},
+    {"pid": 3, "arrival": 2, "burst": 7},
+    {"pid": 4, "arrival": 3, "burst": 3},
+]
 
-def shortest_job_first(processes):
-    sorted_process = sorted(processes,key=lambda x : x.burst_time)
-    total_turn_around_time = 0 
-    total_waiting_time = 0 
+current_time = 0
+completed = []
+turnaround_times = []
+waiting_times = []
 
+print("{:<5} {:<7} {:<5} {:<7} {:<11} {:<10} {:<7}".format(
+    "PID", "Arrival", "Burst", "Start", "Completion", "Turnaround", "Waiting"
+))
 
-    for i in range(len(sorted_process)):
-        if(i == 0):
-            sorted_process[i].waiting_time = 0
-        else:
-            sorted_process[i].waiting_time = sorted_process[i-1].waiting_time + sorted_process[i-1].burst_time
-        sorted_process[i].turn_around_time = sorted_process[i].waiting_time + sorted_process[i].burst_time
-        total_turn_around_time += sorted_process[i].turn_around_time
-        total_waiting_time += sorted_process[i].waiting_time
+while len(completed) < len(processes):
 
+    # Select processes that have arrived so far
+    available = [p for p in processes if p["arrival"] <= current_time and p["pid"] not in completed]
 
-    for process in sorted_process:
-        print(f"Process_id : {process.process_id} , Burst_time : {process.burst_time}, Waiting_time {process.waiting_time}, Turn_around_time : {process.turn_around_time} ")
+    # CPU idle → move time forward
+    if not available:
+        current_time += 1
+        continue
 
-        
-    print("average waiting time ",total_waiting_time/len(sorted_process))
-    print("average turn_around_time ",total_turn_around_time/len(sorted_process))
+    # Choose shortest burst process
+    next_proc = min(available, key=lambda x: x["burst"])
 
-def main():
-        processes = [Process("P1",9),
-                Process("P2",4),
-                Process("P3",5),
-                Process("P4",6),
-                Process("P5",2)
-        ]
+    # Start executing
+    start_time = current_time
+    current_time += next_proc["burst"]
+    completion = current_time
 
-        shortest_job_first(processes)
-    
-if __name__ == "__main__":
-    main()
+    # Time calculations
+    turnaround = completion - next_proc["arrival"]
+    waiting = turnaround - next_proc["burst"]
+
+    turnaround_times.append(turnaround)
+    waiting_times.append(waiting)
+    completed.append(next_proc["pid"])
+
+    print("{:<5} {:<7} {:<5} {:<7} {:<11} {:<10} {:<7}".format(
+        next_proc["pid"], next_proc["arrival"], next_proc["burst"],
+        start_time, completion, turnaround, waiting
+    ))
+
+# Averages
+avg_tat = sum(turnaround_times) / len(processes)
+avg_wt = sum(waiting_times) / len(processes)
+
+print("\nAverage Turnaround Time:", avg_tat)
+print("Average Waiting Time   :", avg_wt)
