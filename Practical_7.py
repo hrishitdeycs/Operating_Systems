@@ -1,54 +1,50 @@
-class Process :
-    def __init__(self,process_id,arrival_time,burst_time):
-        self.process_id = process_id
-        self.arrival_time = arrival_time
-        self.burst_time = burst_time
-        self.start_time = 0
-        self.completion_time =0
-        self.waiting_time = 0
-        self.turn_around_time = 0 
-        
+# First Come First Serve (FCFS) Scheduling
 
-def fcfs(processes):
-        processes.sort(key=lambda x:(x.arrival_time))
-        current_time = 0
-        total_turn_around_time = 0 
-        total_waiting_time = 0 
-        for process in processes:
-            if(process.arrival_time > current_time):
-                current_time = process.arrival_time
-            process.start_time = current_time
-            process.completion_time = process.start_time + process.burst_time
-            process.turn_around_time  = process.completion_time - process.arrival_time
-            process.waiting_time  = process.turn_around_time - process.burst_time
-            total_turn_around_time += process.turn_around_time
-            current_time = process.completion_time
-               
-            total_waiting_time += process.waiting_time
-     
-        print("Process_Id \t Arrival_time \t Burst_Time \t Start_time \t Completion_time \t Waiting time \t  Turn around time" )
+# Process data
+processes = [
+    {"pid": 1, "arrival": 0, "burst": 5},
+    {"pid": 2, "arrival": 1, "burst": 3},
+    {"pid": 3, "arrival": 2, "burst": 8},
+    {"pid": 4, "arrival": 3, "burst": 6},
+]
 
+# Sort processes by arrival time
+processes.sort(key=lambda x: x["arrival"])
 
-        for process in processes:
-            print(f"{process.process_id} \t {process.arrival_time} \t {process.burst_time} \t {process.start_time} \t {process.completion_time} \t{process.waiting_time} \t {process.turn_around_time}")
+current_time = 0
+turnaround_times = []
+waiting_times = []
 
-        print("average waiting time ",total_waiting_time/len(processes))
-        print("average turn around time ",total_turn_around_time/len(processes))
+# Print table header
+print("{:<5} {:<7} {:<5} {:<7} {:<11} {:<10} {:<7}".format(
+    "PID", "Arrival", "Burst", "Start", "Completion", "Turnaround", "Waiting"
+))
 
-    
+# Calculate CT, TAT, WT
+for p in processes:
 
-def main():
-    processes = [Process("P1",0,9),
-                Process("P2",1,8),
-                Process("P3",1,5),
-                Process("P4",3,6),
-                Process("P5",4,2)
-        ]
-        
-    fcfs(processes)
-    
+    # CPU idle → move time to arrival time
+    if current_time < p["arrival"]:
+        current_time = p["arrival"]
 
+    start_time = current_time
+    current_time += p["burst"]   # Completion time
+    completion = current_time
 
-if __name__ == "__main__":
-    main()
-    
+    turnaround = completion - p["arrival"]
+    waiting = turnaround - p["burst"]
+
+    turnaround_times.append(turnaround)
+    waiting_times.append(waiting)
+
+    print("{:<5} {:<7} {:<5} {:<7} {:<11} {:<10} {:<7}".format(
+        p["pid"], p["arrival"], p["burst"], start_time,
+        completion, turnaround, waiting
+    ))
+
+# Averages
+avg_tat = sum(turnaround_times) / len(processes)
+avg_wt = sum(waiting_times) / len(processes)
+
+print("\nAverage Turnaround Time:", avg_tat)
+print("Average Waiting Time   :", avg_wt)
